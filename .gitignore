@@ -1,2 +1,6 @@
 .venv/
 __pycache__/
+.streamlit/secrets.toml
+.pytest_cache/
+# 112 MB - over GitHub's 100 MB file limit; share it via Drive or Git LFS
+MCO1 - Dataset financedataclean.sql
