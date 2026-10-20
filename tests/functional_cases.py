@@ -1,15 +1,14 @@
 """Functional test cases for the five OLAP operations.
 
-Each test case runs the SAME query builder the dashboard uses (olap/queries.py)
-against the data warehouse (finance_mco1), then checks the result against an
-independent oracle:
-  * a separately written query on the SOURCE database (financedata), applying
-    the same cleaning rules as the ETL - so a test also catches ETL errors; and
-  * internal consistency rules (subtotal = sum of children, row totals = sum
-    of cells, drill-down children add up to the parent, ...).
+Each case runs the same query builder the dashboard uses (olap/queries.py) on
+the warehouse and checks the result against either:
+- a separate query on the source database (financedata) with the same cleaning
+  rules as the ETL, so ETL mistakes get caught too, or
+- consistency checks (subtotals add up to their children, pivot totals add up
+  to the cells, etc.)
 
-A check returns a short "actual result" text; it raises AssertionError when
-the actual result differs from the expected result.
+Each check returns a short "actual result" string, and raises AssertionError
+if it doesn't match the expected result.
 """
 from dataclasses import dataclass
 from typing import Callable
@@ -21,13 +20,12 @@ import pandas as pd
 from db import run_query
 from olap import queries as q
 
-TOL = 0.005  # money values are DECIMAL(15,2); allow rounding of the last cent
+TOL = 0.005  # amounts are DECIMAL(15,2), so allow a cent of rounding
 
-# ---------------------------------------------------------------- source oracle
-# Same cleaning rules as finance-db/etl.py, written independently in SQL.
-# The source stores money as DOUBLE; summing DOUBLEs accumulates floating-point
-# error (e.g. 3030321135.7930584 instead of .80), so the oracle casts each amount
-# to DECIMAL first - exactly what the ETL does when loading the warehouse.
+# source queries (used as the expected results)
+# Same cleaning rules as etl.py, but written separately in SQL.
+# The amounts are cast to DECIMAL first because summing the source DOUBLEs
+# gives rounding errors (3030321135.7930584 instead of .80).
 AMT = "CAST(t.amount AS DECIMAL(15,2))"
 SRC_TYPE = "(CASE WHEN t.type = 'VYBER' THEN 'Debit (Withdrawal)' ELSE t.type END)"
 SRC_FROM = """FROM trans t
@@ -64,7 +62,7 @@ class Case:
     check: Callable[[Ctx], str]
 
 
-# ---------------------------------------------------------------- assertion helpers
+# assertion helpers
 def close(a, b, tol=TOL):
     if a is None or b is None or (isinstance(a, float) and math.isnan(a)) \
             or (isinstance(b, float) and math.isnan(b)):
@@ -78,8 +76,8 @@ def assert_close(actual, expected, what, tol=TOL):
 
 
 def assert_frames_match(actual, expected, keys, cols, what):
-    """Every key in `expected` must appear in `actual` with equal values, and
-    vice versa (no missing or extra groups)."""
+    """Check that both have the same groups with the same values (nothing
+    missing or extra)."""
     a = actual.copy()
     e = expected.copy()
     for k in keys:
@@ -118,7 +116,7 @@ def pivot_members(ctx, col_level, filters=None):
     return list(ctx.wh_sql(sql, params).itertuples(index=False, name=None))
 
 
-# ================================================================= ROLL-UP
+# roll-up
 def ru01(ctx):
     df = ctx.run(q.rollup("time", "quarter"))
     detail = df[df.aggregation_level == "Quarter"]
@@ -197,7 +195,7 @@ def ru06(ctx):
     return f"ValueError raised for all 3 invalid inputs, e.g. '{m1}'"
 
 
-# ================================================================= DRILL-DOWN
+# drill-down
 def dd01(ctx):
     df = ctx.run(q.drilldown("time", []))
     src = ctx.src_sql(f"SELECT YEAR(t.newdate) AS year, {SRC_MEASURES} FROM trans t GROUP BY 1")
@@ -282,7 +280,7 @@ def dd07(ctx):
     return f"drilling below finest level and non-integer year rejected ('{m1}'); year 2005 -> 0 rows (no error)"
 
 
-# ================================================================= SLICE
+# slice
 def sl01(ctx):
     df = ctx.run(q.slice_("year", 1997, "region"))
     src = ctx.src_sql(f"SELECT di.region AS region, {SRC_MEASURES} {SRC_FROM} "
@@ -337,7 +335,7 @@ def sl06(ctx):
     return f"4 invalid inputs rejected with ValueError, e.g. '{m1}'"
 
 
-# ================================================================= DICE
+# dice
 def di01(ctx):
     filters = {"year_from": 1996, "year_to": 1997, "regions": ["Prague", "south Moravia"],
                "types": ["Credit"], "amount_min": 1000}
@@ -405,7 +403,7 @@ def di06(ctx):
     return f"5 invalid inputs rejected, e.g. '{m1}'"
 
 
-# ================================================================= PIVOT
+# pivot
 def _region_year(ctx, measure="total_amount"):
     oq = q.pivot("region", "year", measure, pivot_members(ctx, "year"))
     return oq, ctx.run(oq)
@@ -491,7 +489,7 @@ def pv06(ctx):
     return f"3 invalid pivots rejected (same level, too-many-member columns, empty filter), e.g. '{m2}'"
 
 
-# ================================================================= NULL / Unknown handling
+# NULL / Unknown handling
 def nv01(ctx):
     nulls = ctx.wh_sql("SELECT SUM(date_key IS NULL)+SUM(account_key IS NULL)+SUM(type_key IS NULL)"
                        "+SUM(operation_key IS NULL) n FROM transaction_fact").n.iloc[0]
@@ -518,7 +516,7 @@ def nv02(ctx):
     return "empty pivot cell: AVG = NULL (no data), COUNT = 0 - conditional aggregation handles NULLs correctly"
 
 
-# ================================================================= dashboard consistency
+# dashboard checks
 def _app():
     from streamlit.testing.v1 import AppTest
     from db import PROJECT_ROOT
@@ -528,7 +526,7 @@ def _app():
 
 
 def _shown(at):
-    """The report table on the current page (each operation shows exactly one)."""
+    """Returns the one results table shown on the page."""
     assert len(at.dataframe) == 1, f"expected 1 table on the page, found {len(at.dataframe)}"
     return at.dataframe[0].value.reset_index(drop=True)
 
@@ -607,7 +605,7 @@ def ui05(ctx):
     return f"default Roll-up table ({len(shown)} rows incl. subtotals) identical to direct SQL"
 
 
-# ================================================================= registry
+# list of all test cases
 STEP_BUILD = "1. Build the query with olap.queries.{fn}({args})\n2. Execute it on finance_mco1"
 STEP_ORACLE = "3. Compute the expected values independently from the source DB financedata\n4. Compare row by row"
 STEP_CONSIST = "3. Check internal consistency of the result"
@@ -616,7 +614,7 @@ STEP_UI = ("1. Load streamlit_app.py with Streamlit AppTest (headless)\n2. Set t
            "3. Read the table displayed by the dashboard\n4. Run the same builder directly on the warehouse and compare")
 
 CASES = [
-    # ---- Roll-up
+    # roll-up
     Case("RU-01", "Roll-up", "Quarter -> Year -> All subtotals are correct and the grand total equals the source",
          "hierarchy=time, level=quarter, measures=default", STEP_BUILD.format(fn="rollup", args="'time','quarter'")
          + "\n" + STEP_CONSIST + " and compare the grand total with financedata.trans",
@@ -637,7 +635,7 @@ CASES = [
     Case("RU-06", "Roll-up", "Invalid roll-up parameters are rejected",
          "(time, region) / (weather, year) / measure 'profit'", STEP_ERR,
          "ValueError for a level outside the hierarchy, an unknown hierarchy and an unknown measure", ru06),
-    # ---- Drill-down
+    # drill-down
     Case("DD-01", "Drill-down", "Top level of the time hierarchy (All -> Year) is correct",
          "hierarchy=time, path=[]", STEP_BUILD.format(fn="drilldown", args="'time', []") + "\n" + STEP_ORACLE,
          "6 years equal source; shares sum to 100%; first year has NULL previous-period value", dd01),
@@ -660,7 +658,7 @@ CASES = [
     Case("DD-07", "Drill-down", "Invalid drill paths and members with no data",
          "path below finest level; year 'abc'; year 2005", STEP_ERR + "\n3. Run a drill-down on a year with no data",
          "ValueError for invalid paths; an empty result (not an error) for year 2005", dd07),
-    # ---- Slice
+    # slice
     Case("SL-01", "Slice", "Slice Year = 1997 viewed by Region",
          "level=year, value=1997, by=region", STEP_BUILD.format(fn="slice_", args="'year', 1997, 'region'") + "\n" + STEP_ORACLE,
          "8 regions equal source for 1997; shares sum to 100%; ranks ordered", sl01),
@@ -679,7 +677,7 @@ CASES = [
     Case("SL-06", "Slice", "Invalid slice parameters are rejected",
          "same level twice; missing value; quarter 'x'; level 'planet'", STEP_ERR,
          "ValueError for all 4", sl06),
-    # ---- Dice
+    # dice
     Case("DI-01", "Dice", "Dice on 4 dimensions (time range, regions, type, amount) by Region x Operation",
          "years 1996-1997, regions [Prague, south Moravia], types [Credit], amount >= 1000",
          STEP_BUILD.format(fn="dice", args="filters, 'region', by_level2='operation'") + "\n" + STEP_ORACLE,
@@ -700,7 +698,7 @@ CASES = [
     Case("DI-06", "Dice", "Invalid dice parameters are rejected",
          "single dimension; year 1998..1995; amount 5000..100; amount -5; unknown filter", STEP_ERR,
          "ValueError for all 5", di06),
-    # ---- Pivot
+    # pivot
     Case("PV-01", "Pivot", "Region x Year pivot of total amount with row/column totals",
          "rows=region, cols=year, measure=total_amount", STEP_BUILD.format(fn="pivot", args="'region', 'year', 'total_amount', members") + "\n" + STEP_ORACLE,
          "Each cell equals the source; Total column = row sum; Total row = column sums", pv01),
@@ -719,7 +717,7 @@ CASES = [
          "Cells and row totals equal true source averages", pv05),
     Case("PV-06", "Pivot", "Invalid pivot parameters are rejected",
          "rows=cols; cols=district; filter year 2005 (no columns)", STEP_ERR, "ValueError for all 3", pv06),
-    # ---- NULL / Unknown handling
+    # NULL / Unknown handling
     Case("NV-01", "All", "No fact rows are lost because of NULL dimension keys",
          "fact table; roll-ups of year, region, type, operation", "1. Count NULL foreign keys in transaction_fact\n"
          "2. Run a roll-up on each dimension and compare its grand total with COUNT(*)",
@@ -728,7 +726,7 @@ CASES = [
          "rows=type, cols=operation, measures avg_amount and txn_count",
          STEP_BUILD.format(fn="pivot", args="'type', 'operation', measure, members") + "\n3. Inspect the Credit x Withdrawal in Cash cell",
          "AVG cell is NULL, COUNT cell is 0", nv02),
-    # ---- dashboard vs warehouse
+    # dashboard vs warehouse
     Case("UI-01", "Slice", "Dashboard Slice output equals the warehouse query",
          "Slice on Year = 1997, view by Region", STEP_UI, "Displayed table identical to direct SQL result", ui01),
     Case("UI-02", "Pivot", "Dashboard Pivot output (and Swap) equals the warehouse query",

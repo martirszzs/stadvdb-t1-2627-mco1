@@ -1,11 +1,11 @@
-"""Run all OLAP functional test cases and write the test documentation.
+"""Runs all the OLAP functional tests and writes the test documentation.
 
     python tests/run_functional_tests.py            # all cases
-    python tests/run_functional_tests.py RU DD-03   # only cases whose ID starts with these
+    python tests/run_functional_tests.py RU DD-03   # only IDs starting with these
 
-Outputs (overwritten on every run, with the real results of that run):
-    tests/results/functional_test_results.csv   - one row per test case (opens in Excel)
-    tests/results/FUNCTIONAL_TEST_REPORT.md     - summary + full test-case table
+Output (overwritten every run with that run's results):
+    tests/results/functional_test_results.csv   - one row per test case
+    tests/results/FUNCTIONAL_TEST_REPORT.md     - summary + table of all cases
 """
 from pathlib import Path
 import csv
@@ -33,7 +33,7 @@ def execute_case(case, ctx):
         status = "PASS"
     except AssertionError as e:
         actual, status = f"FAILED: {e}", "FAIL"
-    except Exception as e:  # unexpected error = the test could not complete
+    except Exception as e:  # an unexpected error means the test couldn't finish
         actual, status = f"ERROR: {type(e).__name__}: {e}", "ERROR"
     return {
         "Test Case ID": case.id, "OLAP Operation": case.operation, "Test Objective": case.objective,

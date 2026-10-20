@@ -1,12 +1,6 @@
--- =====================================================================
--- LEGACY - superseded by finance-db/etl.py (kept for reference only).
---
--- This was the original SQL-only ETL. It does NOT work with the updated
--- STADVDB-MCO1-Group7-Schema.sql (surrogate keys are now assigned by the
--- ETL, 'Unknown' members replace NULL keys, and blank operations / the
--- Czech type code 'VYBER' are cleaned). Run instead:
+-- old version of the ETL, replaced by finance-db/etl.py (kept for reference).
+-- it doesn't work with the new schema anymore, run this instead:
 --     python finance-db/etl.py
--- =====================================================================
 
 -- loading of data into warehouse
 INSERT INTO account (

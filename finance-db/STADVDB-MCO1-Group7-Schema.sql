@@ -1,29 +1,25 @@
--- =====================================================================
 -- STADVDB MCO1 - Group 7
--- Data warehouse (star schema) for the Berka / PKDD'99 financial dataset
+-- data warehouse (star schema) for the Berka financial dataset
 --
---   Source DB    : financedata   (MCO1 - Dataset financedataclean.sql)
---   Warehouse DB : finance_mco1  (this script)
+-- source db: financedata (from MCO1 - Dataset financedataclean.sql)
+-- warehouse db: finance_mco1 (made by this script)
 --
--- Star schema: 1 fact table + 4 dimension tables
---   transaction_fact  -> date, account, transaction_type, transaction_operation
+-- 1 fact table (transaction_fact) and 4 dimensions:
+-- date, account, transaction_type, transaction_operation
 --
--- Hierarchies used by the OLAP application
---   Time        : year_number > quarter_number > month_number > full_date
---   Location    : region > district_name > account_id   (in dimension `account`)
---   Transaction : transaction_type > operation_name
+-- hierarchies:
+--   time: year > quarter > month > day
+--   location: region > district > account
+--   transaction: type > operation
 --
--- Surrogate keys are assigned by the ETL (finance-db/etl.py).
--- Key -1 is the "Unknown" member of a dimension, so fact foreign keys are
--- never NULL and INNER JOINs never silently drop fact rows.
---
--- The script is re-runnable: it drops and recreates every warehouse table.
--- =====================================================================
+-- the keys are assigned by the ETL (finance-db/etl.py). key -1 is the
+-- "Unknown" row in each dimension, so the fact table never has NULL keys.
+-- safe to run again, it drops and recreates the tables.
 
 CREATE DATABASE IF NOT EXISTS finance_mco1;
 USE finance_mco1;
 
--- drop in dependency order (fact first)
+-- drop the fact table first because of the foreign keys
 DROP TABLE IF EXISTS transaction_fact;
 DROP TABLE IF EXISTS account;
 DROP TABLE IF EXISTS `date`;
@@ -74,7 +70,7 @@ CREATE TABLE transaction_fact (
     type_key INT NOT NULL,
     operation_key INT NOT NULL,
     amount DECIMAL(15,2) NOT NULL,
-    balance DECIMAL(15,2) NOT NULL,         -- semi-additive: never SUM across time
+    balance DECIMAL(15,2) NOT NULL,         -- snapshot value, don't add it up over time
 
     CHECK (amount >= 0),
 

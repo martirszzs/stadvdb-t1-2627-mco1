@@ -1,25 +1,24 @@
-"""ETL pipeline: financedata (source) -> finance_mco1 (star-schema warehouse).
+"""ETL for the data warehouse: loads financedata (source) into finance_mco1.
 
-Run from the project root:
+Run from the project folder:
     python finance-db/etl.py
 
-Steps
-  1. Create   - (re)creates the warehouse tables using STADVDB-MCO1-Group7-Schema.sql
-  2. Extract  - reads trans, account and district from the source database
-  3. Transform- cleans, standardizes, merges, splits and converts the data
-  4. Load     - bulk-inserts the dimensions, then the fact table
-  5. Verify   - reconciles aggregated totals between source and warehouse
+Steps:
+1. create the warehouse tables (runs STADVDB-MCO1-Group7-Schema.sql)
+2. extract trans, account and district from the source db
+3. transform / clean the data
+4. load the dimensions first, then the fact table
+5. check that the totals in the warehouse match the source
 
-Data-quality rules (found by profiling the source data)
-  * type 'VYBER' is an untranslated Czech code. All 16,666 such rows are
-    "Withdrawal in Cash", so they are standardized to 'Debit (Withdrawal)'.
-  * 183,114 rows have a blank operation. Every one of them has
-    k_symbol = 'Interest Credited' (interest the bank credits), so the
-    operation is derived from k_symbol. Any other blank becomes 'Unknown'.
-  * Missing account / district / type / operation values map to the
-    'Unknown' member (key -1) instead of NULL, so no fact row is lost in joins.
-  * Rows without a date or amount cannot be placed in the cube; they are
-    rejected and counted (none exist in the current dataset).
+Data issues we found in the source:
+- 16,666 rows still have the Czech type 'VYBER'. They're all cash
+  withdrawals, so we change them to 'Debit (Withdrawal)'.
+- 183,114 rows have no operation. All of them have
+  k_symbol = 'Interest Credited', so we use that as the operation.
+  Any other blank operation becomes 'Unknown'.
+- missing account/district/type/operation values point to the 'Unknown'
+  row (key -1) instead of NULL, so the joins don't drop any transactions.
+- rows with no date or amount get skipped (there aren't any right now).
 """
 from pathlib import Path
 import sys
@@ -42,7 +41,7 @@ def log(msg):
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
 
 
-# ---------------------------------------------------------------- helpers
+# helpers
 def fetch_df(conn, sql):
     cur = conn.cursor()
     cur.execute(sql)
@@ -53,7 +52,7 @@ def fetch_df(conn, sql):
 
 
 def clean_text(series):
-    """Trim whitespace and turn empty strings into NULL (NaN)."""
+    """Strip spaces and turn empty strings into NaN."""
     s = series.astype("string").str.strip()
     return s.mask(s == "")
 
@@ -71,12 +70,12 @@ def insert_rows(conn, table, columns, rows):
 
 
 def df_to_rows(df, columns):
-    """DataFrame -> list of tuples with NaN/NA converted to None."""
+    """Turn a DataFrame into a list of tuples for executemany (NaN -> None)."""
     out = df[columns].astype(object).where(df[columns].notna(), None)
     return list(out.itertuples(index=False, name=None))
 
 
-# ---------------------------------------------------------------- 1. create
+# 1. create tables
 def create_schema(conn):
     log("1. CREATE  - (re)creating warehouse tables")
     sql = SCHEMA_FILE.read_text(encoding="utf-8")
@@ -93,7 +92,7 @@ def create_schema(conn):
     cur.close()
 
 
-# ---------------------------------------------------------------- 2. extract
+# 2. extract
 def extract(src):
     log("2. EXTRACT - reading source tables")
     trans = fetch_df(src, """
@@ -106,12 +105,12 @@ def extract(src):
     return trans, account, district
 
 
-# ---------------------------------------------------------------- 3. transform
+# 3. transform
 def transform(trans, account, district):
     log("3. TRANSFORM")
     stats = {}
 
-    # ---- account dimension: merge account + district (location hierarchy)
+    # account dimension (account + district, gives region > district > account)
     account = account.copy()
     account["frequency"] = clean_text(account["frequency"]).fillna(UNKNOWN)
     account["newdate"] = pd.to_datetime(account["newdate"], errors="coerce").dt.date
@@ -136,7 +135,7 @@ def transform(trans, account, district):
     log(f"  account dim: {len(dim_account):,} rows "
         f"({stats['accounts_without_district']} accounts without a district -> Unknown)")
 
-    # ---- transactions: cleaning and type conversion
+    # clean up the transactions
     t = trans.copy()
     before = len(t)
     t = t.drop_duplicates(subset="trans_id")
@@ -169,8 +168,8 @@ def transform(trans, account, district):
         f"{stats['operation_from_k_symbol']:,}   remaining blanks -> Unknown: "
         f"{stats['operation_unknown']:,}")
 
-    # ---- date dimension: split dates into the time hierarchy.
-    # Contiguous calendar covering every transaction and account-open date.
+    # date dimension: one row per day, split into year/quarter/month/day.
+    # covers every transaction date and account open date with no gaps
     open_dates = pd.to_datetime(dim_account["account_open_date"], errors="coerce").dropna()
     start = min(t["newdate"].min(), open_dates.min())
     end = max(t["newdate"].max(), open_dates.max())
@@ -187,7 +186,7 @@ def transform(trans, account, district):
     dim_date = cal
     log(f"  date dim: {len(dim_date):,} days ({start.date()} to {end.date()})")
 
-    # ---- small dimensions: distinct values + surrogate keys
+    # type and operation dimensions
     def small_dim(values, key_col, name_col):
         names = sorted(v for v in set(values) if v != UNKNOWN)
         dim = pd.DataFrame({name_col: [UNKNOWN] + names})
@@ -199,7 +198,7 @@ def transform(trans, account, district):
     log(f"  transaction_type: {sorted(dim_type['transaction_type'])}")
     log(f"  transaction_operation: {sorted(dim_op['operation_name'])}")
 
-    # ---- fact table: replace natural keys with surrogate keys
+    # fact table: swap the natural keys for the surrogate keys
     acct_map = dict(zip(dim_account["account_id"], dim_account["account_key"]))
     type_map = dict(zip(dim_type["transaction_type"], dim_type["type_key"]))
     op_map = dict(zip(dim_op["operation_name"], dim_op["operation_key"]))
@@ -217,11 +216,11 @@ def transform(trans, account, district):
     log(f"  fact rows: {len(fact):,} "
         f"(transactions with unknown account: {stats['fact_unknown_account']})")
 
-    # cleaned transactions are kept for the reconciliation step
+    # keep the cleaned transactions for the check at the end
     return dim_account, dim_date, dim_type, dim_op, fact, t, stats
 
 
-# ---------------------------------------------------------------- 4. load
+# 4. load
 def load(wh, dim_account, dim_date, dim_type, dim_op, fact):
     log("4. LOAD")
     insert_rows(wh, "account",
@@ -242,10 +241,10 @@ def load(wh, dim_account, dim_date, dim_type, dim_op, fact):
     insert_rows(wh, "transaction_fact", fact_cols, df_to_rows(fact, fact_cols))
 
 
-# ---------------------------------------------------------------- 5. verify
+# 5. verify
 def reconcile(wh, cleaned):
-    """Aggregate the cleaned source data in pandas and compare it with the
-    same aggregate computed by SQL on the loaded warehouse."""
+    """Compare the totals per year and type between the cleaned source data
+    (pandas) and the loaded warehouse (SQL)."""
     log("5. VERIFY  - reconciling source vs warehouse totals by year and type")
     expected = (cleaned.assign(year=cleaned["newdate"].dt.year)
                 .groupby(["year", "type"])

@@ -1,9 +1,9 @@
-"""STADVDB MCO1 - Group 7: OLAP dashboard for the finance_mco1 data warehouse.
+"""STADVDB MCO1 Group 7 - OLAP dashboard for the finance_mco1 data warehouse.
 
-Run:  streamlit run streamlit_app.py
+Run with:  streamlit run streamlit_app.py
 
-Every number on this page comes from live SQL against the warehouse; the SQL
-is built by olap/queries.py and shown under "SQL executed" for each report.
+All the numbers come from SQL run on the warehouse. The queries are built in
+olap/queries.py and each one is shown under "SQL executed".
 """
 import mysql.connector
 import pandas as pd
@@ -16,10 +16,10 @@ from olap import queries as q
 
 st.set_page_config(page_title="STADVDB MCO1 - OLAP Dashboard", layout="wide")
 
-# ---------------------------------------------------------------- chart style
-# Categorical slots in fixed order (validated colorblind-safe order).
+# chart colors and style
+# colorblind-safe colors, always used in this order
 SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
-# Colors follow the entity, never its rank: Credit is always blue, Debit always orange.
+# each member keeps its color (Credit is always blue, Debit always orange)
 TYPE_COLORS = {"Credit": SERIES[0], "Debit (Withdrawal)": SERIES[1], "Unknown": "#898781"}
 SEQUENTIAL = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"]
 DIVERGING = [[0, "#a83232"], [0.17, "#e34948"], [0.33, "#f2a3a2"], [0.5, "#f0efec"],
@@ -50,7 +50,7 @@ def mtitle(name):
     return q.MEASURES[name].title if name in q.MEASURES else name.replace("_", " ")
 
 
-# ---------------------------------------------------------------- data access
+# data access
 @st.cache_data(ttl=600, show_spinner=False)
 def fetch(sql, params=()):
     return run_query(sql, list(params))
@@ -88,7 +88,7 @@ def location_pairs():
     return fetch(q.location_members_query())
 
 
-# ---------------------------------------------------------------- display helpers
+# display helpers
 def column_config(df):
     cfg = {}
     for col in df.columns:
@@ -116,7 +116,7 @@ def show_sql(oq):
 
 
 def row_labels(df, levels):
-    """Readable label for each row from its level columns (e.g. 1997 / Q2 / May)."""
+    """Label for each row made from its level columns, e.g. 1997 / Q2 / May."""
     def one(row):
         parts = []
         for lv in levels:
@@ -170,7 +170,7 @@ def line_chart(df, x_labels, measure, title):
 
 
 def labels_of(df, level):
-    """Readable labels for one level column (column-wise, keeps ints as ints)."""
+    """Labels for one level column (done per column so ints stay ints)."""
     return pd.Series([member_label(level, v) for v in df[level]], index=df.index)
 
 
@@ -188,8 +188,8 @@ def heatmap(matrix, measure, title, x_title, y_title):
 
 
 def entity_colors(level):
-    """Fixed color per member of a level (by its position in the full member
-    list), so filtering never repaints a surviving member."""
+    """Give each member a fixed color based on its place in the full member
+    list, so colors don't change when you filter."""
     if level == "type":
         return TYPE_COLORS
     vals = member_values(level)
@@ -201,7 +201,7 @@ def entity_colors(level):
 def year_range_filter(key, label="Year range"):
     years = member_values("year")
     lo, hi = st.slider(label, min(years), max(years), (min(years), max(years)), key=key)
-    # only filter when narrowed, so the unfiltered (faster) plan is used otherwise
+    # only filter if the range was narrowed (the unfiltered query is faster)
     if (lo, hi) == (min(years), max(years)):
         return {}
     return {"year_from": lo, "year_to": hi}
@@ -217,7 +217,7 @@ HIERARCHY_TITLES = {"time": "Time (Year > Quarter > Month > Day)",
                     "transaction": "Transaction (Type > Operation)"}
 
 
-# ================================================================= ROLL-UP
+# roll-up
 def render_rollup():
     st.subheader("Roll-up")
     st.write("Aggregates detailed data up the dimension hierarchy - from the chosen "
@@ -278,7 +278,7 @@ def render_rollup():
     show_sql(oq)
 
 
-# ================================================================= DRILL-DOWN
+# drill-down
 def render_drilldown():
     st.subheader("Drill-down")
     st.write("Moves from summarized data to more detailed levels. Pick a member and drill "
@@ -326,14 +326,14 @@ def render_drilldown():
         return
     labels = labels_of(df, child)
     title = f"{mtitle(measure)} by {child_title} - {' > '.join(crumbs)}"
-    # time periods keep their natural left-to-right order; other members are ranked
+    # time periods stay in time order, everything else is sorted by value
     st.plotly_chart(bar_chart(df, labels, measure, title, horizontal=hierarchy != "time"),
                     width="stretch")
     show_table(df, "dd_table")
     show_sql(oq)
 
 
-# ================================================================= SLICE
+# slice
 SLICE_LEVELS = ["year", "quarter", "month", "region", "district", "type", "operation", "frequency"]
 
 
@@ -374,7 +374,7 @@ def render_slice():
     show_sql(oq)
 
 
-# ================================================================= DICE
+# dice
 DICE_BY = ["year", "quarter", "month", "region", "district", "type", "operation", "frequency"]
 
 
@@ -445,7 +445,7 @@ def render_dice():
     show_sql(oq)
 
 
-# ================================================================= PIVOT
+# pivot
 def _swap_pivot():
     st.session_state["pv_rows"], st.session_state["pv_cols"] = \
         st.session_state["pv_cols"], st.session_state["pv_rows"]
@@ -494,7 +494,7 @@ def render_pivot():
     show_sql(oq)
 
 
-# ================================================================= page
+# page layout
 OPERATIONS = {
     "Roll-up": render_rollup,
     "Drill-down": render_drilldown,
