@@ -10,7 +10,7 @@ SELECT /*+ JOIN_PREFIX(f) */
     d.year_number AS `year`,
     d.quarter_number AS `quarter`,
     d.month_number AS `month`,
-    IF(GROUPING(d.month_number) = 1, NULL, ANY_VALUE(d.month_name)) AS `month_name`,
+    IF(GROUPING(d.month_number) = 1, NULL, MAX(d.month_name)) AS `month_name`,
     CASE
         WHEN GROUPING(d.year_number) = 1 THEN 'All'
         WHEN GROUPING(d.quarter_number) = 1 THEN 'Year'
@@ -85,7 +85,7 @@ ORDER BY c.`year`;
 WITH children AS (
     SELECT
         d.month_number AS `month`,
-        ANY_VALUE(d.month_name) AS `month_name`,
+        MAX(d.month_name) AS `month_name`,
         COUNT(*) AS txn_count,
         ROUND(SUM(f.amount), 2) AS total_amount,
         ROUND(SUM(CASE WHEN tt.transaction_type = 'Credit' THEN f.amount ELSE 0 END), 2) AS total_credit,
@@ -163,7 +163,7 @@ ORDER BY s.total_amount DESC;
 WITH slice AS (
     SELECT
         d.month_number AS `month`,
-        ANY_VALUE(d.month_name) AS `month_name`,
+        MAX(d.month_name) AS `month_name`,
         COUNT(*) AS txn_count,
         ROUND(SUM(f.amount), 2) AS total_amount,
         ROUND(SUM(CASE WHEN tt.transaction_type = 'Credit' THEN f.amount ELSE 0 END), 2) AS total_credit,
