@@ -1,0 +1,5 @@
+baseline: transaction_fact ~1,052,827 rows, data 65.6 MB, indexes 66.1 MB
+denormalization: summary_month_district built in 6.5 s, ~28,216 rows (fact table ~1,052,827), data 3.5 MB + indexes 4.0 MB. It must be rebuilt (or refreshed) after every ETL load.
+indexing: ix_cov_date (date_key, type_key, account_key, operation_key, amount) built in 1.4 s, adds ~38.6 MB
+indexing: ix_cov_account (account_key, date_key, type_key, amount) built in 1.3 s, adds ~33.5 MB
+indexing: ix_cov_type (type_key, amount, date_key, account_key) built in 1.3 s, adds ~17.1 MB

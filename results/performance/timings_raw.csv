@@ -1,0 +1,121 @@
+config,variant,case_id,operation,description,run,ms,rows,cols
+baseline,current,RU-1,Roll-up,"Time, month level, no filter",1,3454.28,103,10
+baseline,current,RU-1,Roll-up,"Time, month level, no filter",2,2949.49,103,10
+baseline,current,RU-1,Roll-up,"Time, month level, no filter",3,3000.83,103,10
+baseline,current,RU-1,Roll-up,"Time, month level, no filter",4,2958.83,103,10
+baseline,current,RU-1,Roll-up,"Time, month level, no filter",5,2993.6,103,10
+baseline,current,RU-2,Roll-up,"Time, month level, year 1997",1,1114.66,18,10
+baseline,current,RU-2,Roll-up,"Time, month level, year 1997",2,1167.83,18,10
+baseline,current,RU-2,Roll-up,"Time, month level, year 1997",3,1155.99,18,10
+baseline,current,RU-2,Roll-up,"Time, month level, year 1997",4,1193.12,18,10
+baseline,current,RU-2,Roll-up,"Time, month level, year 1997",5,1125.89,18,10
+baseline,current,RU-3,Roll-up,"Time, day level, no filter (deepest)",1,3706.86,2294,11
+baseline,current,RU-3,Roll-up,"Time, day level, no filter (deepest)",2,3741.33,2294,11
+baseline,current,RU-3,Roll-up,"Time, day level, no filter (deepest)",3,3698.39,2294,11
+baseline,current,RU-3,Roll-up,"Time, day level, no filter (deepest)",4,3757.69,2294,11
+baseline,current,RU-3,Roll-up,"Time, day level, no filter (deepest)",5,3772.06,2294,11
+baseline,current,RU-4,Roll-up,"Location, district level, year 1997",1,1772.31,85,8
+baseline,current,RU-4,Roll-up,"Location, district level, year 1997",2,1843.02,85,8
+baseline,current,RU-4,Roll-up,"Location, district level, year 1997",3,1803.09,85,8
+baseline,current,RU-4,Roll-up,"Location, district level, year 1997",4,1792.24,85,8
+baseline,current,RU-4,Roll-up,"Location, district level, year 1997",5,1858.06,85,8
+baseline,current,RU-5,Roll-up,"Location, account level, no filter (deepest)",1,2646.2,4585,9
+baseline,current,RU-5,Roll-up,"Location, account level, no filter (deepest)",2,2598.06,4585,9
+baseline,current,RU-5,Roll-up,"Location, account level, no filter (deepest)",3,2792.6,4585,9
+baseline,current,RU-5,Roll-up,"Location, account level, no filter (deepest)",4,2624.5,4585,9
+baseline,current,RU-5,Roll-up,"Location, account level, no filter (deepest)",5,2666.5,4585,9
+baseline,current,RU-6,Roll-up,"Transaction, operation level, no filter",1,2744.14,9,8
+baseline,current,RU-6,Roll-up,"Transaction, operation level, no filter",2,2573.89,9,8
+baseline,current,RU-6,Roll-up,"Transaction, operation level, no filter",3,2433.66,9,8
+baseline,current,RU-6,Roll-up,"Transaction, operation level, no filter",4,2397.0,9,8
+baseline,current,RU-6,Roll-up,"Transaction, operation level, no filter",5,2366.41,9,8
+baseline,current,DD-1,Drill-down,Time: all -> years,1,1140.72,6,10
+baseline,current,DD-1,Drill-down,Time: all -> years,2,1140.08,6,10
+baseline,current,DD-1,Drill-down,Time: all -> years,3,1159.9,6,10
+baseline,current,DD-1,Drill-down,Time: all -> years,4,1145.61,6,10
+baseline,current,DD-1,Drill-down,Time: all -> years,5,1152.86,6,10
+baseline,current,DD-2,Drill-down,Time: 1997 -> quarters,1,778.35,4,10
+baseline,current,DD-2,Drill-down,Time: 1997 -> quarters,2,811.03,4,10
+baseline,current,DD-2,Drill-down,Time: 1997 -> quarters,3,773.61,4,10
+baseline,current,DD-2,Drill-down,Time: 1997 -> quarters,4,781.85,4,10
+baseline,current,DD-2,Drill-down,Time: 1997 -> quarters,5,751.75,4,10
+baseline,current,DD-3,Drill-down,Time: 1997 Q2 -> months,1,179.75,3,11
+baseline,current,DD-3,Drill-down,Time: 1997 Q2 -> months,2,193.0,3,11
+baseline,current,DD-3,Drill-down,Time: 1997 Q2 -> months,3,190.09,3,11
+baseline,current,DD-3,Drill-down,Time: 1997 Q2 -> months,4,183.15,3,11
+baseline,current,DD-3,Drill-down,Time: 1997 Q2 -> months,5,207.95,3,11
+baseline,current,DD-4,Drill-down,Location: all -> regions,1,943.17,8,8
+baseline,current,DD-4,Drill-down,Location: all -> regions,2,946.41,8,8
+baseline,current,DD-4,Drill-down,Location: all -> regions,3,967.77,8,8
+baseline,current,DD-4,Drill-down,Location: all -> regions,4,945.69,8,8
+baseline,current,DD-4,Drill-down,Location: all -> regions,5,958.16,8,8
+baseline,current,DD-5,Drill-down,Location: south Moravia -> districts,1,353.28,14,8
+baseline,current,DD-5,Drill-down,Location: south Moravia -> districts,2,358.71,14,8
+baseline,current,DD-5,Drill-down,Location: south Moravia -> districts,3,362.77,14,8
+baseline,current,DD-5,Drill-down,Location: south Moravia -> districts,4,333.68,14,8
+baseline,current,DD-5,Drill-down,Location: south Moravia -> districts,5,362.35,14,8
+baseline,current,DD-6,Drill-down,Location: Prague -> districts,1,257.78,1,8
+baseline,current,DD-6,Drill-down,Location: Prague -> districts,2,266.3,1,8
+baseline,current,DD-6,Drill-down,Location: Prague -> districts,3,265.57,1,8
+baseline,current,DD-6,Drill-down,Location: Prague -> districts,4,251.87,1,8
+baseline,current,DD-6,Drill-down,Location: Prague -> districts,5,259.65,1,8
+baseline,current,SL-1,Slice,Year = 1997 by region,1,1488.44,8,8
+baseline,current,SL-1,Slice,Year = 1997 by region,2,1635.77,8,8
+baseline,current,SL-1,Slice,Year = 1997 by region,3,1537.54,8,8
+baseline,current,SL-1,Slice,Year = 1997 by region,4,1464.47,8,8
+baseline,current,SL-1,Slice,Year = 1997 by region,5,1624.24,8,8
+baseline,current,SL-2,Slice,Region = Prague by month,1,367.52,12,9
+baseline,current,SL-2,Slice,Region = Prague by month,2,409.79,12,9
+baseline,current,SL-2,Slice,Region = Prague by month,3,414.46,12,9
+baseline,current,SL-2,Slice,Region = Prague by month,4,380.07,12,9
+baseline,current,SL-2,Slice,Region = Prague by month,5,392.25,12,9
+baseline,current,SL-3,Slice,Type = Credit by year,1,1212.97,6,8
+baseline,current,SL-3,Slice,Type = Credit by year,2,1271.42,6,8
+baseline,current,SL-3,Slice,Type = Credit by year,3,1250.58,6,8
+baseline,current,SL-3,Slice,Type = Credit by year,4,1224.83,6,8
+baseline,current,SL-3,Slice,Type = Credit by year,5,1198.95,6,8
+baseline,current,SL-4,Slice,Year = 1996 by operation,1,708.87,6,8
+baseline,current,SL-4,Slice,Year = 1996 by operation,2,699.44,6,8
+baseline,current,SL-4,Slice,Year = 1996 by operation,3,692.77,6,8
+baseline,current,SL-4,Slice,Year = 1996 by operation,4,687.8,6,8
+baseline,current,SL-4,Slice,Year = 1996 by operation,5,689.98,6,8
+baseline,current,DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,1,1526.46,4,9
+baseline,current,DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,2,1431.31,4,9
+baseline,current,DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,3,1436.44,4,9
+baseline,current,DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,4,1433.52,4,9
+baseline,current,DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,5,1369.78,4,9
+baseline,current,DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",1,2365.74,9,9
+baseline,current,DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",2,2289.23,9,9
+baseline,current,DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",3,2233.59,9,9
+baseline,current,DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",4,2436.55,9,9
+baseline,current,DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",5,2374.03,9,9
+baseline,current,DC-3,Dice,"Q1-Q2 x Prague, by month",1,349.33,6,9
+baseline,current,DC-3,Dice,"Q1-Q2 x Prague, by month",2,338.17,6,9
+baseline,current,DC-3,Dice,"Q1-Q2 x Prague, by month",3,320.27,6,9
+baseline,current,DC-3,Dice,"Q1-Q2 x Prague, by month",4,356.73,6,9
+baseline,current,DC-3,Dice,"Q1-Q2 x Prague, by month",5,307.09,6,9
+baseline,current,DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",1,783.99,8,8
+baseline,current,DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",2,779.79,8,8
+baseline,current,DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",3,787.84,8,8
+baseline,current,DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",4,769.83,8,8
+baseline,current,DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",5,756.16,8,8
+baseline,current,PV-1,Pivot,Total amount: region x year,1,2161.59,9,8
+baseline,current,PV-1,Pivot,Total amount: region x year,2,2224.74,9,8
+baseline,current,PV-1,Pivot,Total amount: region x year,3,2184.11,9,8
+baseline,current,PV-1,Pivot,Total amount: region x year,4,2182.15,9,8
+baseline,current,PV-1,Pivot,Total amount: region x year,5,2197.7,9,8
+baseline,current,PV-2,Pivot,Total amount: year x region,1,2381.57,7,10
+baseline,current,PV-2,Pivot,Total amount: year x region,2,2371.96,7,10
+baseline,current,PV-2,Pivot,Total amount: year x region,3,2390.04,7,10
+baseline,current,PV-2,Pivot,Total amount: year x region,4,2400.57,7,10
+baseline,current,PV-2,Pivot,Total amount: year x region,5,2352.44,7,10
+baseline,current,PV-3,Pivot,"Net flow: district x year, region Prague",1,405.83,2,8
+baseline,current,PV-3,Pivot,"Net flow: district x year, region Prague",2,388.91,2,8
+baseline,current,PV-3,Pivot,"Net flow: district x year, region Prague",3,386.45,2,8
+baseline,current,PV-3,Pivot,"Net flow: district x year, region Prague",4,398.86,2,8
+baseline,current,PV-3,Pivot,"Net flow: district x year, region Prague",5,404.5,2,8
+baseline,current,PV-4,Pivot,Active accounts: region x year,1,1836.71,9,8
+baseline,current,PV-4,Pivot,Active accounts: region x year,2,1809.12,9,8
+baseline,current,PV-4,Pivot,Active accounts: region x year,3,1811.46,9,8
+baseline,current,PV-4,Pivot,Active accounts: region x year,4,1832.48,9,8
+baseline,current,PV-4,Pivot,Active accounts: region x year,5,1815.2,9,8

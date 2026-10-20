@@ -1,0 +1,20 @@
+Run at           : 2026-10-20 22:30:04
+OS               : Windows-11-10.0.26100-SP0
+CPU              : Intel64 Family 6 Model 197 Stepping 2, GenuineIntel  (14 logical cores)
+RAM              : 15.4 GiB
+Python           : 3.14.5
+MySQL            : 8.0.46
+innodb_buffer_pool_size : 128 MiB
+
+Warehouse tables (approx. rows, data MB, index MB):
+  account                  rows~     4,677  data      0.3 MB  index      0.3 MB
+  date                     rows~     2,191  data      0.2 MB  index      0.1 MB
+  transaction_fact         rows~ 1,052,827  data     57.6 MB  index    160.8 MB
+  transaction_operation    rows~         7  data      0.0 MB  index      0.0 MB
+  transaction_type         rows~         3  data      0.0 MB  index      0.0 MB
+Indexes on transaction_fact at the start of the run (baseline):
+  idx_fk_account_key           (account_key)
+  idx_fk_date_key              (date_key)
+  idx_fk_operation_key         (operation_key)
+  PRIMARY                      (trans_id)
+  type_key                     (type_key)

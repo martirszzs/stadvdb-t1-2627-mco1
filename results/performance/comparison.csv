@@ -1,0 +1,25 @@
+case_id,operation,description,baseline|current
+RU-1,Roll-up,"Time, month level, no filter",2993.6
+RU-2,Roll-up,"Time, month level, year 1997",1155.99
+RU-3,Roll-up,"Time, day level, no filter (deepest)",3741.33
+RU-4,Roll-up,"Location, district level, year 1997",1803.09
+RU-5,Roll-up,"Location, account level, no filter (deepest)",2646.2
+RU-6,Roll-up,"Transaction, operation level, no filter",2433.66
+DD-1,Drill-down,Time: all -> years,1145.61
+DD-2,Drill-down,Time: 1997 -> quarters,778.35
+DD-3,Drill-down,Time: 1997 Q2 -> months,190.09
+DD-4,Drill-down,Location: all -> regions,946.41
+DD-5,Drill-down,Location: south Moravia -> districts,358.71
+DD-6,Drill-down,Location: Prague -> districts,259.65
+SL-1,Slice,Year = 1997 by region,1537.54
+SL-2,Slice,Region = Prague by month,392.25
+SL-3,Slice,Type = Credit by year,1224.83
+SL-4,Slice,Year = 1996 by operation,692.77
+DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,1433.52
+DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",2365.74
+DC-3,Dice,"Q1-Q2 x Prague, by month",338.17
+DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",779.79
+PV-1,Pivot,Total amount: region x year,2184.11
+PV-2,Pivot,Total amount: year x region,2381.57
+PV-3,Pivot,"Net flow: district x year, region Prague",398.86
+PV-4,Pivot,Active accounts: region x year,1815.2

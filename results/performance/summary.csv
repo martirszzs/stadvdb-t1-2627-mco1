@@ -1,0 +1,25 @@
+config,variant,case_id,operation,description,median,mean,min,max,stdev,runs,rows
+baseline,current,RU-1,Roll-up,"Time, month level, no filter",2993.6,3071.41,2949.49,3454.28,215.15,5,103
+baseline,current,RU-2,Roll-up,"Time, month level, year 1997",1155.99,1151.5,1114.66,1193.12,31.75,5,18
+baseline,current,RU-3,Roll-up,"Time, day level, no filter (deepest)",3741.33,3735.27,3698.39,3772.06,31.86,5,2294
+baseline,current,RU-4,Roll-up,"Location, district level, year 1997",1803.09,1813.74,1772.31,1858.06,35.76,5,85
+baseline,current,RU-5,Roll-up,"Location, account level, no filter (deepest)",2646.2,2665.57,2598.06,2792.6,75.43,5,4585
+baseline,current,RU-6,Roll-up,"Transaction, operation level, no filter",2433.66,2503.02,2366.41,2744.14,156.42,5,9
+baseline,current,DD-1,Drill-down,Time: all -> years,1145.61,1147.83,1140.08,1159.9,8.46,5,6
+baseline,current,DD-2,Drill-down,Time: 1997 -> quarters,778.35,779.32,751.75,811.03,21.25,5,4
+baseline,current,DD-3,Drill-down,Time: 1997 Q2 -> months,190.09,190.79,179.75,207.95,10.96,5,3
+baseline,current,DD-4,Drill-down,Location: all -> regions,946.41,952.24,943.17,967.77,10.43,5,8
+baseline,current,DD-5,Drill-down,Location: south Moravia -> districts,358.71,354.16,333.68,362.77,12.06,5,14
+baseline,current,DD-6,Drill-down,Location: Prague -> districts,259.65,260.23,251.87,266.3,5.95,5,1
+baseline,current,SL-1,Slice,Year = 1997 by region,1537.54,1550.09,1464.47,1635.77,77.67,5,8
+baseline,current,SL-2,Slice,Region = Prague by month,392.25,392.82,367.52,414.46,19.74,5,12
+baseline,current,SL-3,Slice,Type = Credit by year,1224.83,1231.75,1198.95,1271.42,29.17,5,6
+baseline,current,SL-4,Slice,Year = 1996 by operation,692.77,695.77,687.8,708.87,8.53,5,6
+baseline,current,DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,1433.52,1439.5,1369.78,1526.46,55.98,5,4
+baseline,current,DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",2365.74,2339.83,2233.59,2436.55,79.12,5,9
+baseline,current,DC-3,Dice,"Q1-Q2 x Prague, by month",338.17,334.32,307.09,356.73,20.5,5,6
+baseline,current,DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",779.79,775.52,756.16,787.84,12.74,5,8
+baseline,current,PV-1,Pivot,Total amount: region x year,2184.11,2190.06,2161.59,2224.74,23.29,5,9
+baseline,current,PV-2,Pivot,Total amount: year x region,2381.57,2379.32,2352.44,2400.57,18.36,5,7
+baseline,current,PV-3,Pivot,"Net flow: district x year, region Prague",398.86,396.91,386.45,405.83,8.87,5,2
+baseline,current,PV-4,Pivot,Active accounts: region x year,1815.2,1820.99,1809.12,1836.71,12.69,5,9
