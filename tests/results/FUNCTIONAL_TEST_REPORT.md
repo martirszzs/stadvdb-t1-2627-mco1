@@ -1,6 +1,6 @@
 # OLAP Functional Test Report - STADVDB MCO1 Group 7
 
-- **Executed:** 2026-10-19 22:49
+- **Executed:** 2026-10-20 19:15
 - **Environment:** MySQL 8.0.43, Python 3.12.10, warehouse `finance_mco1` with 1,056,320 fact rows
 - **How to reproduce:** `python tests/run_functional_tests.py` (or `pytest tests`)
 - **Method:** each case runs the same query builder the dashboard uses (`olap/queries.py`) on the warehouse and compares the result with an independent query on the source database `financedata` and/or internal consistency rules. UI cases drive the real dashboard headlessly (Streamlit AppTest) and compare the displayed table with the warehouse query.

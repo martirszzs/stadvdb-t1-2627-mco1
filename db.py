@@ -1,7 +1,7 @@
-"""Shared MySQL connection helpers for the ETL, the dashboard and the tests.
+"""MySQL connection helpers used by the ETL, the dashboard and the tests.
 
-Credentials are read from .streamlit/secrets.toml (git-ignored).
-See .streamlit/secrets.toml.example for the expected format.
+The login details are in .streamlit/secrets.toml (not committed, see
+.streamlit/secrets.toml.example).
 """
 from decimal import Decimal
 from pathlib import Path
@@ -25,7 +25,7 @@ def load_config():
 
 
 def get_connection(database=None):
-    """Open a connection. `database` is "source", "warehouse" or None."""
+    """Open a connection. database can be "source", "warehouse" or None."""
     cfg = load_config()
     db_name = {"source": cfg["source_db"], "warehouse": cfg["warehouse_db"]}.get(database)
     return mysql.connector.connect(
@@ -55,8 +55,8 @@ def run_query(sql, params=None, database="warehouse", conn=None):
 
 
 def _decimals_to_float(df):
-    """MySQL returns DECIMAL/SUM() results as Decimal objects; convert them so
-    pandas and Plotly treat them as numbers."""
+    """MySQL gives back Decimal objects for DECIMAL and SUM() columns, so turn
+    them into floats for pandas and Plotly."""
     for col in df.columns:
         non_null = df[col].dropna()
         if not non_null.empty and isinstance(non_null.iloc[0], Decimal):

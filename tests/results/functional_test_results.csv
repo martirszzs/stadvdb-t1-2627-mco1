@@ -1,63 +1,63 @@
 ﻿Test Case ID,OLAP Operation,Test Objective,Input Parameters / Filters,Steps to Execute,Expected Result,Actual Result,Status,Duration (s)
 RU-01,Roll-up,Quarter -> Year -> All subtotals are correct and the grand total equals the source,"hierarchy=time, level=quarter, measures=default","1. Build the query with olap.queries.rollup('time','quarter')
 2. Execute it on finance_mco1
-3. Check internal consistency of the result and compare the grand total with financedata.trans","Each Year row = sum of its Quarter rows; All = sum of Years = 1,056,320 txns and source total amount","24 quarter rows, 6 year subtotals, 1 grand total; all subtotals equal the sum of their children; grand total 1,056,320 txns / 6,257,793,560.30 = source",PASS,3.82
+3. Check internal consistency of the result and compare the grand total with financedata.trans","Each Year row = sum of its Quarter rows; All = sum of Years = 1,056,320 txns and source total amount","24 quarter rows, 6 year subtotals, 1 grand total; all subtotals equal the sum of their children; grand total 1,056,320 txns / 6,257,793,560.30 = source",PASS,3.42
 RU-02,Roll-up,Year subtotals of a Month-level roll-up match the source per year,"hierarchy=time, level=month","1. Build the query with olap.queries.rollup('time','month')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row","6 year subtotals equal source count, amount, credits and debits; month_name only on month rows","72 month rows; 6 year subtotals match source (count, amount, credits, debits)",PASS,4.79
+4. Compare row by row","6 year subtotals equal source count, amount, credits and debits; month_name only on month rows","72 month rows; 6 year subtotals match source (count, amount, credits, debits)",PASS,4.22
 RU-03,Roll-up,Location hierarchy rolls districts up into regions correctly,"hierarchy=location, level=district","1. Build the query with olap.queries.rollup('location','district')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",8 region subtotals equal source; one detail row per district with accounts; region = sum of districts,76 district rows; 8 region subtotals match source and equal sum of their districts,PASS,9.93
+4. Compare row by row",8 region subtotals equal source; one detail row per district with accounts; region = sum of districts,76 district rows; 8 region subtotals match source and equal sum of their districts,PASS,11.19
 RU-04,Roll-up,Transaction hierarchy roll-up and cleaning of VYBER / blank operations,"hierarchy=transaction, level=operation","1. Build the query with olap.queries.rollup('transaction','operation')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",Type subtotals equal source with VYBER counted as Debit; blank source operations = 'Interest Credited' count,"2 type subtotals match source (VYBER folded into Debit); blank source operations (183,114) all appear as 'Interest Credited'; no NULL/blank operation member",PASS,5.60
+4. Compare row by row",Type subtotals equal source with VYBER counted as Debit; blank source operations = 'Interest Credited' count,"2 type subtotals match source (VYBER folded into Debit); blank source operations (183,114) all appear as 'Interest Credited'; no NULL/blank operation member",PASS,4.85
 RU-05,Roll-up,Roll-up respects a time filter,"hierarchy=location, level=region, filters={year_from:1997, year_to:1997}","1. Build the query with olap.queries.rollup('location','region', filters)
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",Grand total equals the source totals for 1997 only,"8 region rows; grand total 284,409 txns / 1,688,329,011.10 = source for 1997",PASS,2.80
+4. Compare row by row",Grand total equals the source totals for 1997 only,"8 region rows; grand total 284,409 txns / 1,688,329,011.10 = source for 1997",PASS,2.78
 RU-06,Roll-up,Invalid roll-up parameters are rejected,"(time, region) / (weather, year) / measure 'profit'","1. Call the builder with each invalid parameter set
 2. Confirm a ValueError with a clear message is raised","ValueError for a level outside the hierarchy, an unknown hierarchy and an unknown measure","ValueError raised for all 3 invalid inputs, e.g. 'level 'region' is not part of the time hierarchy ['year', 'quarter', 'month', 'day']'",PASS,0.00
 DD-01,Drill-down,Top level of the time hierarchy (All -> Year) is correct,"hierarchy=time, path=[]","1. Build the query with olap.queries.drilldown('time', [])
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",6 years equal source; shares sum to 100%; first year has NULL previous-period value,6 years match source; shares sum to 100.00%; first year has NULL LAG,PASS,3.35
+4. Compare row by row",6 years equal source; shares sum to 100%; first year has NULL previous-period value,6 years match source; shares sum to 100.00%; first year has NULL LAG,PASS,2.67
 DD-02,Drill-down,Drilling Year 1997 -> Quarters keeps totals consistent,"hierarchy=time, path=[1997]","1. Build the query with olap.queries.drilldown('time', [1997])
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",Quarters 1-4; their sum equals the 1997 row of DD-01 and the source,"4 quarters; they sum to the 1997 parent (1,688,329,011.10) and match source",PASS,3.53
+4. Compare row by row",Quarters 1-4; their sum equals the 1997 row of DD-01 and the source,"4 quarters; they sum to the 1997 parent (1,688,329,011.10) and match source",PASS,2.62
 DD-03,Drill-down,"Drilling 1997 Q2 -> Months, with correct period-over-period change","hierarchy=time, path=[1997, 2]","1. Build the query with olap.queries.drilldown('time', [1997, 2])
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row","Only April, May, June; values equal source; pct_change_vs_prev = (May-Apr)/Apr",April-June 1997 match source; May change vs April = 5.84% (LAG correct),PASS,1.22
+4. Compare row by row","Only April, May, June; values equal source; pct_change_vs_prev = (May-Apr)/Apr",April-June 1997 match source; May change vs April = 5.84% (LAG correct),PASS,0.90
 DD-04,Drill-down,Drilling to the finest level (days of May 1997),"hierarchy=time, path=[1997, 2, 5]","1. Build the query with olap.queries.drilldown('time', [1997, 2, 5])
 2. Execute it on finance_mco1
-3. Check internal consistency of the result","31 days, all in May 1997; their sum equals the May row of DD-03","31 days of May 1997; sum 130,633,542.80 = May total",PASS,0.71
+3. Check internal consistency of the result","31 days, all in May 1997; their sum equals the May row of DD-03","31 days of May 1997; sum 130,633,542.80 = May total",PASS,0.40
 DD-05,Drill-down,Location drill-down Region -> District -> Account,"path=['south Moravia'] then ['south Moravia', 'Brno - mesto']","1. Build the query with olap.queries.drilldown('location', path)
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",14 districts summing to the region; one row per account of Brno - mesto summing to the district,"south Moravia -> 14 districts (sum = region); Brno - mesto -> 128 accounts (sum 150,893,655.90 = district)",PASS,2.05
+4. Compare row by row",14 districts summing to the region; one row per account of Brno - mesto summing to the district,"south Moravia -> 14 districts (sum = region); Brno - mesto -> 128 accounts (sum 150,893,655.90 = district)",PASS,1.51
 DD-06,Drill-down,Transaction drill-down Type -> Operation,path=['Credit'] and ['Debit (Withdrawal)'],"1. Build the query with olap.queries.drilldown('transaction', [type])
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",3 credit and 3 debit operations; Withdrawal in Cash count equals source (incl. former VYBER rows),"Credit -> 3 operations, Debit -> 3 operations; Withdrawal in Cash = 434,918 (incl. 16,666 former VYBER rows)",PASS,6.38
+4. Compare row by row",3 credit and 3 debit operations; Withdrawal in Cash count equals source (incl. former VYBER rows),"Credit -> 3 operations, Debit -> 3 operations; Withdrawal in Cash = 434,918 (incl. 16,666 former VYBER rows)",PASS,3.33
 DD-07,Drill-down,Invalid drill paths and members with no data,path below finest level; year 'abc'; year 2005,"1. Call the builder with each invalid parameter set
 2. Confirm a ValueError with a clear message is raised
 3. Run a drill-down on a year with no data",ValueError for invalid paths; an empty result (not an error) for year 2005,"drilling below finest level and non-integer year rejected ('cannot drill below 'operation', the finest level of transaction'); year 2005 -> 0 rows (no error)",PASS,0.00
 SL-01,Slice,Slice Year = 1997 viewed by Region,"level=year, value=1997, by=region","1. Build the query with olap.queries.slice_('year', 1997, 'region')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",8 regions equal source for 1997; shares sum to 100%; ranks ordered,8 regions match source for 1997; shares sum to 100%; ranks ordered,PASS,8.31
+4. Compare row by row",8 regions equal source for 1997; shares sum to 100%; ranks ordered,8 regions match source for 1997; shares sum to 100%; ranks ordered,PASS,10.78
 SL-02,Slice,Slice Region = Prague viewed by Month with running total,"level=region, value=Prague, by=month","1. Build the query with olap.queries.slice_('region', 'Prague', 'month')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",12 months equal source; final running total equals the Prague total,"12 months match source; running total ends at 804,485,600.30 = Prague total",PASS,1.49
+4. Compare row by row",12 months equal source; final running total equals the Prague total,"12 months match source; running total ends at 804,485,600.30 = Prague total",PASS,1.69
 SL-03,Slice,Slice Type = Credit contains only credits,"level=type, value=Credit, by=year","1. Build the query with olap.queries.slice_('type', 'Credit', 'year')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row","Debits are 0, net flow = credits, years equal source",6 years match source; debits = 0 and net flow = credits in every year,PASS,4.43
+4. Compare row by row","Debits are 0, net flow = credits, years equal source",6 years match source; debits = 0 and net flow = credits in every year,PASS,3.89
 SL-04,Slice,Slice on an account attribute (statement frequency),"level=frequency, value=Weekly, by=type","1. Build the query with olap.queries.slice_('frequency', 'Weekly', 'type')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
@@ -69,66 +69,66 @@ SL-06,Slice,Invalid slice parameters are rejected,same level twice; missing valu
 DI-01,Dice,"Dice on 4 dimensions (time range, regions, type, amount) by Region x Operation","years 1996-1997, regions [Prague, south Moravia], types [Credit], amount >= 1000","1. Build the query with olap.queries.dice(filters, 'region', by_level2='operation')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",Every cell equals the source; shares within each region sum to 100%,4 region x operation cells match source; shares within each region sum to 100%,PASS,2.93
+4. Compare row by row",Every cell equals the source; shares within each region sum to 100%,4 region x operation cells match source; shares within each region sum to 100%,PASS,3.97
 DI-02,Dice,"Dice on quarters, operation and account frequency","quarters [1,4], operations [Withdrawal in Cash], frequencies [Monthly]","1. Build the query with olap.queries.dice(filters, 'year')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",Years equal source,"6 years match source (Q1+Q4, Withdrawal in Cash, Monthly statements)",PASS,7.11
+4. Compare row by row",Years equal source,"6 years match source (Q1+Q4, Withdrawal in Cash, Monthly statements)",PASS,7.93
 DI-03,Dice,Dice with a date range and districts,"date 1998-01-01..1998-03-31, districts [Hl.m. Praha, Brno - mesto]","1. Build the query with olap.queries.dice(filters, 'month', by_level2='district')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",Only months 1-3; cells equal source,6 month x district cells match source for Jan-Mar 1998,PASS,2.25
+4. Compare row by row",Only months 1-3; cells equal source,6 month x district cells match source for Jan-Mar 1998,PASS,2.39
 DI-04,Dice,Dice with an amount range is inclusive and exact,"amount 5000..10000, types [Debit (Withdrawal)]","1. Build the query with olap.queries.dice(filters, 'region')
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",All amounts within the range; regions equal source; no credits,"8 regions match source; amount range inclusive (5,000-10,000); no credits",PASS,4.69
+4. Compare row by row",All amounts within the range; regions equal source; no credits,"8 regions match source; amount range inclusive (5,000-10,000); no credits",PASS,3.08
 DI-05,Dice,Dice that matches nothing returns an empty result,"regions [Prague], amount >= 90000","1. Build the query with olap.queries.dice(filters, 'year')
-2. Execute it on finance_mco1",0 rows and no error,"0 rows (largest transaction is 87,400 < 90,000); no error",PASS,1.19
+2. Execute it on finance_mco1",0 rows and no error,"0 rows (largest transaction is 87,400 < 90,000); no error",PASS,0.70
 DI-06,Dice,Invalid dice parameters are rejected,single dimension; year 1998..1995; amount 5000..100; amount -5; unknown filter,"1. Call the builder with each invalid parameter set
 2. Confirm a ValueError with a clear message is raised",ValueError for all 5,"5 invalid inputs rejected, e.g. 'dice needs filters on at least two different dimensions (got: ['location']); use slice for a single dimension'",PASS,0.00
 PV-01,Pivot,Region x Year pivot of total amount with row/column totals,"rows=region, cols=year, measure=total_amount","1. Build the query with olap.queries.pivot('region', 'year', 'total_amount', members)
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",Each cell equals the source; Total column = row sum; Total row = column sums,"48 cells match source; every row total and column total is consistent; grand total 6,257,793,560.30",PASS,9.73
+4. Compare row by row",Each cell equals the source; Total column = row sum; Total row = column sums,"48 cells match source; every row total and column total is consistent; grand total 6,257,793,560.30",PASS,11.18
 PV-02,Pivot,Swapping rows and columns rotates the report,region x year vs year x region,"1. Build the query with olap.queries.pivot(both orientations)
 2. Execute it on finance_mco1
-3. Compare matrices",The swapped pivot is the exact transpose,region x year (8x6) swapped to year x region (6x8) is its exact transpose,PASS,7.50
+3. Compare matrices",The swapped pivot is the exact transpose,region x year (8x6) swapped to year x region (6x8) is its exact transpose,PASS,6.25
 PV-03,Pivot,Operation x Month pivot of transaction counts for 1998,"rows=operation, cols=month, measure=txn_count, years 1998..1998","1. Build the query with olap.queries.pivot('operation', 'month', 'txn_count', members, filters)
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",12 month columns + Total; total = 1998 source count; counts are integers,"7 operations x 12 months (1998); total 322,277 = source; Withdrawal in Cash/January = 25,662 = source; all counts integers",PASS,2.94
+4. Compare row by row",12 month columns + Total; total = 1998 source count; counts are integers,"7 operations x 12 months (1998); total 322,277 = source; Withdrawal in Cash/January = 25,662 = source; all counts integers",PASS,2.58
 PV-04,Pivot,Type x Quarter pivot of net flow (signed measure),"rows=type, cols=quarter, measure=net_flow","1. Build the query with olap.queries.pivot('type', 'quarter', 'net_flow', members)
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row","Credit row positive, Debit row negative; overall net flow equals source","Credit row positive, Debit row negative in every quarter; overall net flow 197,151,288.70 = source",PASS,4.54
+4. Compare row by row","Credit row positive, Debit row negative; overall net flow equals source","Credit row positive, Debit row negative in every quarter; overall net flow 197,151,288.70 = source",PASS,3.35
 PV-05,Pivot,Frequency x Type pivot of average amount (non-additive measure),"rows=frequency, cols=type, measure=avg_amount","1. Build the query with olap.queries.pivot('frequency', 'type', 'avg_amount', members)
 2. Execute it on finance_mco1
 3. Compute the expected values independently from the source DB financedata
-4. Compare row by row",Cells and row totals equal true source averages,6 average cells match source; row totals are true averages (not average of averages),PASS,9.64
+4. Compare row by row",Cells and row totals equal true source averages,6 average cells match source; row totals are true averages (not average of averages),PASS,14.64
 PV-06,Pivot,Invalid pivot parameters are rejected,rows=cols; cols=district; filter year 2005 (no columns),"1. Call the builder with each invalid parameter set
 2. Confirm a ValueError with a clear message is raised",ValueError for all 3,"3 invalid pivots rejected (same level, too-many-member columns, empty filter), e.g. ''district' cannot be used as pivot columns (too many members). Valid: ['year', 'quarter', 'month', 'region', 'type', 'operation', 'frequency']'",PASS,0.00
 NV-01,All,No fact rows are lost because of NULL dimension keys,"fact table; roll-ups of year, region, type, operation","1. Count NULL foreign keys in transaction_fact
-2. Run a roll-up on each dimension and compare its grand total with COUNT(*)",0 NULL keys; Unknown members exist; every grand total = total fact rows,"0 NULL foreign keys; 'Unknown' members exist; every hierarchy's grand total = 1,056,320 (no rows lost in joins)",PASS,4.89
+2. Run a roll-up on each dimension and compare its grand total with COUNT(*)",0 NULL keys; Unknown members exist; every grand total = total fact rows,"0 NULL foreign keys; 'Unknown' members exist; every hierarchy's grand total = 1,056,320 (no rows lost in joins)",PASS,4.15
 NV-02,Pivot,"Empty pivot cells: AVG gives NULL, COUNT gives 0","rows=type, cols=operation, measures avg_amount and txn_count","1. Build the query with olap.queries.pivot('type', 'operation', measure, members)
 2. Execute it on finance_mco1
-3. Inspect the Credit x Withdrawal in Cash cell","AVG cell is NULL, COUNT cell is 0","empty pivot cell: AVG = NULL (no data), COUNT = 0 - conditional aggregation handles NULLs correctly",PASS,4.64
+3. Inspect the Credit x Withdrawal in Cash cell","AVG cell is NULL, COUNT cell is 0","empty pivot cell: AVG = NULL (no data), COUNT = 0 - conditional aggregation handles NULLs correctly",PASS,3.49
 UI-01,Slice,Dashboard Slice output equals the warehouse query,"Slice on Year = 1997, view by Region","1. Load streamlit_app.py with Streamlit AppTest (headless)
 2. Set the widgets as listed
 3. Read the table displayed by the dashboard
-4. Run the same builder directly on the warehouse and compare",Displayed table identical to direct SQL result,dashboard Slice table (8 rows x 10 cols) identical to direct SQL,PASS,11.36
+4. Run the same builder directly on the warehouse and compare",Displayed table identical to direct SQL result,dashboard Slice table (8 rows x 10 cols) identical to direct SQL,PASS,7.56
 UI-02,Pivot,Dashboard Pivot output (and Swap) equals the warehouse query,"Pivot rows=Region, cols=Year, Total amount; then Swap","1. Load streamlit_app.py with Streamlit AppTest (headless)
 2. Set the widgets as listed
 3. Read the table displayed by the dashboard
-4. Run the same builder directly on the warehouse and compare",Both displayed tables identical to direct SQL,dashboard Pivot (region x year) and its swap (year x region) identical to direct SQL,PASS,14.59
+4. Run the same builder directly on the warehouse and compare",Both displayed tables identical to direct SQL,dashboard Pivot (region x year) and its swap (year x region) identical to direct SQL,PASS,11.40
 UI-03,Drill-down,Dashboard drill-down navigation shows the correct children,"Drill-down Time: select 1995, click Drill down","1. Load streamlit_app.py with Streamlit AppTest (headless)
 2. Set the widgets as listed
 3. Read the table displayed by the dashboard
-4. Run the same builder directly on the warehouse and compare",Breadcrumb shows 1995; quarters identical to direct SQL,after drilling into 1995 the dashboard shows 4 quarters identical to direct SQL; breadcrumb '**Current position:** All > 1995',PASS,3.50
+4. Run the same builder directly on the warehouse and compare",Breadcrumb shows 1995; quarters identical to direct SQL,after drilling into 1995 the dashboard shows 4 quarters identical to direct SQL; breadcrumb '**Current position:** All > 1995',PASS,2.40
 UI-04,Dice,Dashboard rejects a single-dimension dice and accepts a valid one,"Dice: full year range + regions only, then add type Credit","1. Load streamlit_app.py with Streamlit AppTest (headless)
 2. Set the widgets as listed
 3. Read the table displayed by the dashboard
-4. Run the same builder directly on the warehouse and compare",Warning and no table first; then table identical to direct SQL,single-dimension dice shows a warning and no table; adding a 2nd dimension shows a table identical to direct SQL,PASS,4.17
+4. Run the same builder directly on the warehouse and compare",Warning and no table first; then table identical to direct SQL,single-dimension dice shows a warning and no table; adding a 2nd dimension shows a table identical to direct SQL,PASS,2.47
 UI-05,Roll-up,Dashboard Roll-up output equals the warehouse query,"Roll-up default (Time, Quarter)","1. Load streamlit_app.py with Streamlit AppTest (headless)
 2. Set the widgets as listed
 3. Read the table displayed by the dashboard
-4. Run the same builder directly on the warehouse and compare",Displayed table identical to direct SQL,default Roll-up table (31 rows incl. subtotals) identical to direct SQL,PASS,3.05
+4. Run the same builder directly on the warehouse and compare",Displayed table identical to direct SQL,default Roll-up table (31 rows incl. subtotals) identical to direct SQL,PASS,2.39

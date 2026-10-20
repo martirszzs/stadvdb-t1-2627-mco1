@@ -1,7 +1,6 @@
-"""pytest entry point for the OLAP functional tests: `pytest tests -v`.
+"""pytest version of the functional tests: `pytest tests -v`.
 
-The test cases themselves live in functional_cases.py and are shared with
-run_functional_tests.py (which also writes the test documentation).
+The cases are in functional_cases.py (shared with run_functional_tests.py).
 """
 import pytest
 
