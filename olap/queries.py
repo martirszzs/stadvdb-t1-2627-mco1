@@ -1,17 +1,19 @@
-"""Builds the SQL for the OLAP operations on the finance_mco1 star schema.
+"""OLAP query builders for the finance_mco1 star schema.
 
-Each function returns an OlapQuery (the SQL plus its parameters). The dashboard
-and the tests both use these, so the tests check the same SQL the dashboard runs.
+Every public function returns an OlapQuery (SQL text + bound parameters).
+The dashboard (streamlit_app.py) and the functional tests (tests/) both use
+these builders, so the SQL that is tested is exactly the SQL the dashboard runs.
 
-Values the user picks (years, regions, amounts...) are passed as %s parameters.
-Level, measure and hierarchy names are checked against the lists below before
-they go into the SQL. Bad input raises ValueError.
+Safety: user-chosen values (years, regions, amounts, ...) are always passed as
+bound parameters (%s). User-chosen *structure* (levels, measures, hierarchies)
+is validated against the whitelists below and never inserted as raw text.
+Invalid parameters raise ValueError.
 """
 from dataclasses import dataclass, field
 import datetime as dt
 import re
 
-# dimensions and levels
+# ---------------------------------------------------------------- dimensions
 DIMENSION_JOINS = {
     "d":  "JOIN `date` d                  ON d.date_key = f.date_key",
     "a":  "JOIN account a                 ON a.account_key = f.account_key",
@@ -21,19 +23,19 @@ DIMENSION_JOINS = {
 
 
 def star_from(*parts):
-    """Build the FROM clause, joining only the dimension tables the query uses
-    (each extra join costs about a million lookups)."""
+    """FROM clause of the star join, joining only the dimension tables that the
+    given SQL fragments reference (each unused join costs ~1M lookups)."""
     text = " ".join(p if isinstance(p, str) else " ".join(p) for p in parts)
     joins = [j for alias, j in DIMENSION_JOINS.items() if re.search(rf"\b{alias}\.", text)]
     return "\n".join(["FROM transaction_fact f"] + joins)
 
 
 def select_kw(clauses):
-    """SELECT with a JOIN_PREFIX hint when there are no filters.
-
-    Without filters MySQL starts from the dimension table and does random
-    lookups into the fact table, which was about 2x slower than scanning the
-    fact table first. With filters its normal plan is faster, so we leave it."""
+    """SELECT keyword with an optimizer hint for unfiltered queries.
+    Without filters, scanning the fact table first and looking up the small
+    dimensions is ~2x faster than MySQL's default plan (which drives from the
+    dimension and does random index lookups into the fact table). With
+    selective filters the default plan is better, so no hint is added."""
     return "SELECT" if clauses else "SELECT /*+ JOIN_PREFIX(f) */"
 
 
@@ -66,11 +68,11 @@ HIERARCHIES = {
     "transaction": ["type", "operation"],
 }
 
-# levels with only a few members, so they fit as pivot columns
+# Levels with few members: allowed as pivot columns.
 PIVOT_COLUMN_LEVELS = ["year", "quarter", "month", "region", "type", "operation", "frequency"]
 PIVOT_ROW_LEVELS = PIVOT_COLUMN_LEVELS + ["district"]
 
-# measures
+# ---------------------------------------------------------------- measures
 CREDIT = "Credit"
 DEBIT = "Debit (Withdrawal)"
 
@@ -95,15 +97,15 @@ MEASURES = {
                                f"CASE WHEN tt.transaction_type = '{CREDIT}' THEN f.amount "
                                f"WHEN tt.transaction_type = '{DEBIT}' THEN -f.amount ELSE 0 END"),
     "active_accounts": Measure("active_accounts", "Active accounts", "COUNT_DISTINCT", "f.account_key"),
-    # balance is a snapshot, so we average it instead of summing it
+    # balance is semi-additive (a running snapshot) so it is averaged, never summed
     "avg_balance":     Measure("avg_balance", "Average balance after transaction", "AVG", "f.balance"),
 }
 DEFAULT_MEASURES = ["txn_count", "total_amount", "total_credit", "total_debit", "net_flow"]
 
 
 def measure_sql(m, cond=None):
-    """SQL for a measure. If cond is given, only rows matching it are included
-    (used for the pivot columns)."""
+    """Aggregate SQL for a measure, optionally restricted by a condition
+    (conditional aggregation, used by the pivot)."""
     if m.agg == "COUNT":
         return "COUNT(*)" if cond is None else f"COUNT(CASE WHEN {cond} THEN 1 END)"
     if m.agg == "COUNT_DISTINCT":
@@ -118,7 +120,7 @@ def measure_sql(m, cond=None):
     raise ValueError(f"unsupported aggregate {m.agg}")
 
 
-# query object
+# ---------------------------------------------------------------- query object
 @dataclass
 class OlapQuery:
     operation: str
@@ -129,7 +131,7 @@ class OlapQuery:
     measure_columns: list = field(default_factory=list)
 
 
-# validation
+# ---------------------------------------------------------------- validation
 def _level(name):
     if name not in LEVELS:
         raise ValueError(f"unknown level '{name}'. Valid levels: {', '.join(LEVELS)}")
@@ -153,7 +155,7 @@ def _measures(names):
 
 
 def _coerce(level, value):
-    """Convert a value from the UI to the level's type."""
+    """Convert a user-supplied member value to the level's type."""
     if value is None or (isinstance(value, str) and value.strip() == ""):
         raise ValueError(f"a value for {level.title} is required")
     try:
@@ -174,10 +176,10 @@ def _measure_select(measures):
 
 
 def _level_select(level, rollup=False):
-    """Columns to select for a level (the key, plus the label if it has one)."""
+    """SELECT items for a level: key column plus optional label column."""
     items = [f"{level.key} AS `{level.name}`"]
     if level.label:
-        label = f"ANY_VALUE({level.label})"
+        label = f"MAX({level.label})"
         if rollup:
             label = f"IF(GROUPING({level.key}) = 1, NULL, {label})"
         items.append(f"{label} AS `{level.name}_name`")
@@ -201,7 +203,7 @@ def _indent(items, sep=",\n    "):
     return "    " + sep.join(items)
 
 
-# filters
+# ---------------------------------------------------------------- filters
 FILTER_KEYS = {
     # key: (dimension, kind, sql expression)
     "year_from":   ("time", "min", "d.year_number"),
@@ -221,8 +223,8 @@ FILTER_KEYS = {
 
 
 def build_filters(filters):
-    """Turn the filter dict into (where clauses, params, dimensions used).
-    Empty or None values are ignored."""
+    """Translate a filter dict into (where_clauses, params, dimensions_used).
+    Empty / None values mean "no filter" for that key."""
     filters = filters or {}
     unknown = set(filters) - set(FILTER_KEYS)
     if unknown:
@@ -286,10 +288,10 @@ def _where(clauses):
     return "WHERE " + "\n  AND ".join(clauses) if clauses else ""
 
 
-# roll-up
+# ================================================================= ROLL-UP
 def rollup(hierarchy, level, measures=None, filters=None):
-    """Group by `level` and every level above it, up to a grand total
-    (GROUP BY ... WITH ROLLUP, with GROUPING() to tell the rows apart)."""
+    """Aggregate from `level` up through every coarser level of the hierarchy
+    to a grand total, using GROUP BY ... WITH ROLLUP and GROUPING()."""
     path = _hierarchy(hierarchy)
     if level not in path:
         raise ValueError(f"level '{level}' is not part of the {hierarchy} hierarchy {path}")
@@ -327,11 +329,11 @@ def rollup(hierarchy, level, measures=None, filters=None):
                      _level_columns(levels) + ["aggregation_level"], [m.name for m in ms])
 
 
-# drill-down
+# ================================================================= DRILL-DOWN
 def drilldown(hierarchy, path_values=None, measures=None, filters=None):
-    """Children of a member in a hierarchy. path_values is the member picked at
-    each level from the top, e.g. [1997, 2] in time means 1997 Q2, so the
-    result is its months."""
+    """Show the children of a member of a hierarchy. path_values lists the
+    selected member at each level from the top, e.g. [1997, 2] in the time
+    hierarchy = 1997 Q2, whose children are its months."""
     path = _hierarchy(hierarchy)
     path_values = list(path_values or [])
     if len(path_values) >= len(path):
@@ -383,10 +385,10 @@ def drilldown(hierarchy, path_values=None, measures=None, filters=None):
                      [m.name for m in ms])
 
 
-# slice
+# ================================================================= SLICE
 def slice_(level, value, by_level, measures=None):
-    """Fix one member of one dimension (e.g. year = 1997) and break the result
-    down by another level."""
+    """Fix ONE dimension member (e.g. year = 1997) and analyse the resulting
+    sub-cube along another level."""
     lv = _level(level)
     by = _level(by_level)
     if level == by_level:
@@ -422,10 +424,10 @@ def slice_(level, value, by_level, measures=None):
                      _level_columns([by]), [m.name for m in ms])
 
 
-# dice
+# ================================================================= DICE
 def dice(filters, by_level, measures=None, by_level2=None):
-    """Filter on two or more dimensions (values or ranges) and group the result
-    by one or two levels."""
+    """Select a sub-cube using conditions on TWO OR MORE dimensions
+    (values and/or ranges) and summarise it by one or two levels."""
     clauses, params, dims = build_filters(filters)
     if len(dims) < 2:
         raise ValueError("dice needs filters on at least two different dimensions "
@@ -473,12 +475,12 @@ def dice(filters, by_level, measures=None, by_level2=None):
                      _level_columns(by), [m.name for m in ms])
 
 
-# pivot
+# ================================================================= PIVOT
 def pivot_columns_query(col_level, filters=None):
-    """Members of the pivot column level, in order."""
+    """Query returning the members of the pivot column level (in order)."""
     col = _level(col_level)
     clauses, params, _ = build_filters(filters)
-    label = f"ANY_VALUE({col.label})" if col.label else col.key
+    label = f"MAX({col.label})" if col.label else col.key
     sql = _sql(
         f"{select_kw(clauses)} {col.key} AS col_key, {label} AS col_label",
         star_from(col.key, clauses),
@@ -490,9 +492,10 @@ def pivot_columns_query(col_level, filters=None):
 
 
 def pivot(row_level, col_level, measure, col_members, filters=None):
-    """Pivot: one row per member of row_level and one column per member of
-    col_level, plus a total row and a total column. col_members is a list of
-    (key, label) pairs, usually from pivot_columns_query()."""
+    """Rotate the cube: one row per member of row_level, one column per
+    member of col_level (conditional aggregation), plus row/column totals.
+    col_members is a list of (key, label) pairs - normally the result of
+    pivot_columns_query()."""
     if row_level not in PIVOT_ROW_LEVELS:
         raise ValueError(f"'{row_level}' cannot be used as pivot rows. Valid: {PIVOT_ROW_LEVELS}")
     if col_level not in PIVOT_COLUMN_LEVELS:
@@ -506,7 +509,7 @@ def pivot(row_level, col_level, measure, col_members, filters=None):
         raise ValueError("pivot has no column members (the filters may exclude all data)")
     clauses, f_params, _ = build_filters(filters)
 
-    row_label = f"ANY_VALUE({row.label})" if row.label else row.key
+    row_label = f"MAX({row.label})" if row.label else row.key
     select = [
         f"IF(GROUPING({row.key}) = 1, 'Total', CAST({row_label} AS CHAR)) AS `{row.name}`",
     ]
@@ -531,12 +534,12 @@ def pivot(row_level, col_level, measure, col_members, filters=None):
                      [row.name], columns + ["Total"])
 
 
-# helpers for the dashboard dropdowns
+# ================================================================= helpers for the UI
 def members_query(level):
-    """Members of a level that have at least one transaction (for dropdowns)."""
+    """Distinct members of a level that actually have facts (for dropdowns)."""
     lv = _level(level)
     if lv.dimension == "time":
-        label = f", ANY_VALUE({lv.label}) AS label" if lv.label else ""
+        label = f", MAX({lv.label}) AS label" if lv.label else ""
         return f"SELECT {lv.key} AS member{label} FROM `date` d GROUP BY {lv.key} ORDER BY {lv.key}"
     table, alias, pk, fk = {
         "location": ("account", "a", "account_key", "account_key"),
@@ -563,7 +566,7 @@ def overview_query():
 
 
 def location_members_query():
-    """Region/district pairs that have transactions (for the filter dropdowns)."""
+    """Region -> district pairs that have facts (for cascading filters)."""
     return ("SELECT DISTINCT a.region, a.district_name AS district FROM account a "
             "WHERE EXISTS (SELECT 1 FROM transaction_fact f WHERE f.account_key = a.account_key) "
             "ORDER BY a.region, a.district_name")
