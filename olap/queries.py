@@ -177,7 +177,7 @@ def _level_select(level, rollup=False):
     """Columns to select for a level (the key, plus the label if it has one)."""
     items = [f"{level.key} AS `{level.name}`"]
     if level.label:
-        label = f"ANY_VALUE({level.label})"
+        label = f"MAX({level.label})"
         if rollup:
             label = f"IF(GROUPING({level.key}) = 1, NULL, {label})"
         items.append(f"{label} AS `{level.name}_name`")
@@ -478,7 +478,7 @@ def pivot_columns_query(col_level, filters=None):
     """Members of the pivot column level, in order."""
     col = _level(col_level)
     clauses, params, _ = build_filters(filters)
-    label = f"ANY_VALUE({col.label})" if col.label else col.key
+    label = f"MAX({col.label})" if col.label else col.key
     sql = _sql(
         f"{select_kw(clauses)} {col.key} AS col_key, {label} AS col_label",
         star_from(col.key, clauses),
@@ -506,7 +506,7 @@ def pivot(row_level, col_level, measure, col_members, filters=None):
         raise ValueError("pivot has no column members (the filters may exclude all data)")
     clauses, f_params, _ = build_filters(filters)
 
-    row_label = f"ANY_VALUE({row.label})" if row.label else row.key
+    row_label = f"MAX({row.label})" if row.label else row.key
     select = [
         f"IF(GROUPING({row.key}) = 1, 'Total', CAST({row_label} AS CHAR)) AS `{row.name}`",
     ]
@@ -536,7 +536,7 @@ def members_query(level):
     """Members of a level that have at least one transaction (for dropdowns)."""
     lv = _level(level)
     if lv.dimension == "time":
-        label = f", ANY_VALUE({lv.label}) AS label" if lv.label else ""
+        label = f", MAX({lv.label}) AS label" if lv.label else ""
         return f"SELECT {lv.key} AS member{label} FROM `date` d GROUP BY {lv.key} ORDER BY {lv.key}"
     table, alias, pk, fk = {
         "location": ("account", "a", "account_key", "account_key"),
