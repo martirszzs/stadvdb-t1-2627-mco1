@@ -20,12 +20,8 @@ import pandas as pd
 from db import run_query
 from olap import queries as q
 
-TOL = 0.005  # amounts are DECIMAL(15,2), so allow a cent of rounding
+TOL = 0.005 
 
-# source queries (used as the expected results)
-# Same cleaning rules as etl.py, but written separately in SQL.
-# The amounts are cast to DECIMAL first because summing the source DOUBLEs
-# gives rounding errors (3030321135.7930584 instead of .80).
 AMT = "CAST(t.amount AS DECIMAL(15,2))"
 SRC_TYPE = "(CASE WHEN t.type = 'VYBER' THEN 'Debit (Withdrawal)' ELSE t.type END)"
 SRC_FROM = """FROM trans t
