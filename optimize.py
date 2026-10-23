@@ -1,3 +1,5 @@
+# optimize.py
+
 """Optimization experiments for the OLAP queries (MCO1 Step 6, part 2).
 
 Put this file in the project root, next to benchmark.py and db.py, then run:

@@ -1,3 +1,5 @@
+-- STADVDB-MCO1-Group7-Optimization.sql
+
 /* =====================================================================
    STADVDB MCO1 - Group 7 : Step 6 - Performance Optimization (MySQL Workbench)
    Database: finance_mco1

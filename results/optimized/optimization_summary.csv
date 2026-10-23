@@ -1,25 +1,25 @@
 strategy,case_id,operation,description,before_ms,after_ms,speedup,rows,same_result
-reformulation,RU-1,Roll-up,"Time, month level, no filter",2859.3,323.5,8.84,103,yes
-reformulation,RU-3,Roll-up,"Time, day level, no filter (deepest)",3553.1,343.7,10.34,2294,yes
-reformulation,RU-5,Roll-up,"Location, account level, no filter (deepest)",2484.9,364.0,6.83,4585,yes
-denormalization,RU-1,Roll-up,"Time, month level, no filter",2859.3,55.5,51.49,103,yes
-denormalization,RU-6,Roll-up,"Transaction, operation level, no filter",2330.8,51.3,45.45,9,yes
-denormalization,DD-1,Drill-down,Time: all -> years,1181.3,24.2,48.79,6,yes
-denormalization,DD-4,Drill-down,Location: all -> regions,956.6,25.4,37.7,8,yes
-denormalization,PV-1,Pivot,Total amount: region x year,2203.9,28.9,76.32,9,yes
-denormalization,PV-2,Pivot,Total amount: year x region,2380.9,39.2,60.71,7,yes
-indexing,RU-2,Roll-up,"Time, month level, year 1997",1080.0,605.8,1.78,18,yes
-indexing,RU-4,Roll-up,"Location, district level, year 1997",1419.7,690.2,2.06,85,yes
-indexing,DD-2,Drill-down,Time: 1997 -> quarters,954.4,170.6,5.59,4,yes
-indexing,DD-3,Drill-down,Time: 1997 Q2 -> months,208.4,50.6,4.12,3,yes
-indexing,DD-5,Drill-down,Location: south Moravia -> districts,492.8,182.0,2.71,14,yes
-indexing,DD-6,Drill-down,Location: Prague -> districts,356.4,133.1,2.68,1,yes
-indexing,SL-1,Slice,Year = 1997 by region,1059.0,343.4,3.08,8,yes
-indexing,SL-2,Slice,Region = Prague by month,407.3,217.3,1.87,12,yes
-indexing,SL-4,Slice,Year = 1996 by operation,675.9,252.9,2.67,6,yes
-indexing,DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,299.0,109.3,2.74,4,yes
-indexing,DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",1461.8,350.9,4.17,9,yes
-indexing,DC-3,Dice,"Q1-Q2 x Prague, by month",409.6,170.2,2.41,6,yes
-indexing,PV-3,Pivot,"Net flow: district x year, region Prague",420.0,235.8,1.78,2,yes
-indexing,SL-3,Slice,Type = Credit by year,1109.5,127.7,8.69,6,yes
-indexing,DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",893.3,164.1,5.44,8,yes
+reformulation,RU-1,Roll-up,"Time, month level, no filter",6227.9,618.6,10.07,103,yes
+reformulation,RU-3,Roll-up,"Time, day level, no filter (deepest)",6973.9,688.5,10.13,2294,yes
+reformulation,RU-5,Roll-up,"Location, account level, no filter (deepest)",5097.5,754.8,6.75,4585,yes
+denormalization,RU-1,Roll-up,"Time, month level, no filter",6227.9,106.3,58.59,103,yes
+denormalization,RU-6,Roll-up,"Transaction, operation level, no filter",5459.9,85.9,63.57,9,yes
+denormalization,DD-1,Drill-down,Time: all -> years,2658.0,49.8,53.41,6,yes
+denormalization,DD-4,Drill-down,Location: all -> regions,1740.1,53.9,32.28,8,yes
+denormalization,PV-1,Pivot,Total amount: region x year,6346.6,66.2,95.85,9,yes
+denormalization,PV-2,Pivot,Total amount: year x region,5505.3,82.3,66.88,7,yes
+indexing,RU-2,Roll-up,"Time, month level, year 1997",1296.6,1096.9,1.18,18,yes
+indexing,RU-4,Roll-up,"Location, district level, year 1997",2001.9,1401.7,1.43,85,yes
+indexing,DD-2,Drill-down,Time: 1997 -> quarters,751.4,360.8,2.08,4,yes
+indexing,DD-3,Drill-down,Time: 1997 Q2 -> months,182.3,100.8,1.81,3,yes
+indexing,DD-5,Drill-down,Location: south Moravia -> districts,362.8,454.5,0.8,14,yes
+indexing,DD-6,Drill-down,Location: Prague -> districts,388.9,266.0,1.46,1,yes
+indexing,SL-1,Slice,Year = 1997 by region,1405.6,827.6,1.7,8,yes
+indexing,SL-2,Slice,Region = Prague by month,541.7,408.0,1.33,12,yes
+indexing,SL-4,Slice,Year = 1996 by operation,801.2,372.4,2.15,6,yes
+indexing,DC-1,Dice,1996-97 x Prague/south Moravia x Credit x amount>=1000,520.5,255.6,2.04,4,yes
+indexing,DC-2,Dice,"1995-97 x 3 regions x Debit, by region and year",1142.2,687.4,1.66,9,yes
+indexing,DC-3,Dice,"Q1-Q2 x Prague, by month",462.3,301.1,1.54,6,yes
+indexing,PV-3,Pivot,"Net flow: district x year, region Prague",546.3,435.1,1.26,2,yes
+indexing,SL-3,Slice,Type = Credit by year,1376.5,852.4,1.61,6,yes
+indexing,DC-4,Dice,"All years x amount 5000-20000 x Credit, by region",638.6,209.3,3.05,8,yes

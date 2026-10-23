@@ -1,3 +1,4 @@
+-- finance-db > STADVDB-MCO1-Group7-OLAP-Queries.sql
 -- STADVDB MCO1 - Group 7: OLAP queries on finance_mco1
 -- made with `python -m olap.export_sql` (same queries the dashboard runs,
 -- with example values filled in)

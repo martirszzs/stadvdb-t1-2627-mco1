@@ -2,10 +2,6 @@
 
 Each function returns an OlapQuery (the SQL plus its parameters). The dashboard
 and the tests both use these, so the tests check the same SQL the dashboard runs.
-
-Values the user picks (years, regions, amounts...) are passed as %s parameters.
-Level, measure and hierarchy names are checked against the lists below before
-they go into the SQL. Bad input raises ValueError.
 """
 from dataclasses import dataclass, field
 import datetime as dt
@@ -125,7 +121,7 @@ class OlapQuery:
     sql: str
     params: list = field(default_factory=list)
     description: str = ""
-    level_columns: list = field(default_factory=list)   # dimension columns in the result
+    level_columns: list = field(default_factory=list)
     measure_columns: list = field(default_factory=list)
 
 
@@ -203,7 +199,6 @@ def _indent(items, sep=",\n    "):
 
 # filters
 FILTER_KEYS = {
-    # key: (dimension, kind, sql expression)
     "year_from":   ("time", "min", "d.year_number"),
     "year_to":     ("time", "max", "d.year_number"),
     "date_from":   ("time", "min_date", "d.full_date"),

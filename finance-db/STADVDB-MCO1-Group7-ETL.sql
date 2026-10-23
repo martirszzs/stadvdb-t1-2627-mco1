@@ -1,3 +1,4 @@
+-- finance-db > STADVDB-MCO1-Group7-ETL.sql
 -- old version of the ETL, replaced by finance-db/etl.py (kept for reference).
 -- it doesn't work with the new schema anymore, run this instead:
 --     python finance-db/etl.py

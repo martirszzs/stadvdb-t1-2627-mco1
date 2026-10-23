@@ -10,15 +10,6 @@ Steps:
 4. load the dimensions first, then the fact table
 5. check that the totals in the warehouse match the source
 
-Data issues we found in the source:
-- 16,666 rows still have the Czech type 'VYBER'. They're all cash
-  withdrawals, so we change them to 'Debit (Withdrawal)'.
-- 183,114 rows have no operation. All of them have
-  k_symbol = 'Interest Credited', so we use that as the operation.
-  Any other blank operation becomes 'Unknown'.
-- missing account/district/type/operation values point to the 'Unknown'
-  row (key -1) instead of NULL, so the joins don't drop any transactions.
-- rows with no date or amount get skipped (there aren't any right now).
 """
 from pathlib import Path
 import sys

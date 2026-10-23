@@ -1,3 +1,5 @@
+# tests > functional_cases.py
+
 """Functional test cases for the five OLAP operations.
 
 Each case runs the same query builder the dashboard uses (olap/queries.py) on

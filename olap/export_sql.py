@@ -1,3 +1,4 @@
+"olap > export_sql.py"
 """Writes finance-db/STADVDB-MCO1-Group7-OLAP-Queries.sql with an example query
 for each OLAP operation. The parameters are filled in so the queries can be
 run straight in MySQL Workbench.

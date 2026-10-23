@@ -1,3 +1,5 @@
+# tests > run_functional_tests.py
+
 """Runs all the OLAP functional tests and writes the test documentation.
 
     python tests/run_functional_tests.py            # all cases

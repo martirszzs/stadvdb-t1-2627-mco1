@@ -1,0 +1,25 @@
+name: Keep Streamlit awake
+
+on:
+  schedule:
+    - cron: "17 * * * *"    # every hour, at minute 17
+  workflow_dispatch:         # lets you run it by hand
+
+# never let two runs overlap
+concurrency:
+  group: keep-awake
+  cancel-in-progress: false
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55      # worst case is about 45 minutes with 8 attempts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install selenium
+      - run: python keep_awake.py
+        env:
+          STREAMLIT_APP_URL: "https://stadvdb-t1-2627-mco1-g7.streamlit.app/"

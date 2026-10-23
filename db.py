@@ -1,3 +1,5 @@
+# db.py
+
 """MySQL connection helpers used by the ETL, the dashboard and the tests.
 
 The login details are in .streamlit/secrets.toml (not committed, see

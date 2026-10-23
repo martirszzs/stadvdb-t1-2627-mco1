@@ -1,3 +1,5 @@
+# benchmark.py
+
 """Performance benchmark for the OLAP queries (MCO1 Step 6).
 
 Place this file in the project root (next to db.py and streamlit_app.py) and run:

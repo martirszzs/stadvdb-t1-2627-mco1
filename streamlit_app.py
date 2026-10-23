@@ -1,9 +1,4 @@
 """STADVDB MCO1 Group 7 - OLAP dashboard for the finance_mco1 data warehouse.
-
-Run with:  streamlit run streamlit_app.py
-
-All the numbers come from SQL run on the warehouse. The queries are built in
-olap/queries.py and each one is shown under "SQL executed".
 """
 import mysql.connector
 import pandas as pd

@@ -1,3 +1,4 @@
+-- finance-db > STADVDB-MCO1-Group7-Schema.sql
 -- STADVDB MCO1 - Group 7
 -- data warehouse (star schema) for the Berka financial dataset
 --

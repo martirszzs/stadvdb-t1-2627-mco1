@@ -1,3 +1,4 @@
+<!-- README.md -->
 # STADVDB MCO1 - Group 7: Financial Data Warehouse & OLAP Dashboard
 
 Berka / PKDD'99 Czech bank dataset (1,056,320 transactions, 4,500 accounts, 1993-1998)
