@@ -26,7 +26,7 @@ def visit_once():
         time.sleep(20)                       # let the page load
 
         # print what the robot actually sees, so the log is real evidence
-        page_text = driver.find_element(By.TAG_NAME, "body").text
+        page_text = driver.find_element(By.TAG_NAME, "body").get_attribute("textContent")
         print("Page title:", driver.title)
         print("Page text starts with:", page_text[:150].replace("\n", " "))
 
