@@ -25,8 +25,19 @@ def visit_once():
         driver.get(URL)
         time.sleep(20)                       # let the page load
 
+        # print what the robot actually sees, so the log is real evidence
+        page_text = driver.find_element(By.TAG_NAME, "body").text
+        print("Page title:", driver.title)
+        print("Page text starts with:", page_text[:150].replace("\n", " "))
+
         buttons = driver.find_elements(By.XPATH, WAKE_XPATH)
-        if buttons:
+        sleeping = "gone to sleep" in page_text.lower()
+
+        if buttons or sleeping:
+            if not buttons:
+                print("Page says the app is asleep but no button was found.")
+                return False                 # fail loudly so you hear about it
+
             print("App was asleep. Clicking the wake-up button.")
             buttons[0].click()
             # wait up to 3 minutes for the app to boot (button disappears)
