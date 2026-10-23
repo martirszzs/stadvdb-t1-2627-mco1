@@ -23,3 +23,5 @@ jobs:
       - run: python keep_awake.py
         env:
           STREAMLIT_APP_URL: "https://stadvdb-t1-2627-mco1-g7.streamlit.app/"
+
+# MISCELLANEOUS COMMENT: forcing the scheduler to update
